@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bangor Water Level</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:-apple-system,sans-serif;max-width:1000px;margin:auto;padding:16px}
+.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:10px 0}
+.big{font-size:3rem;font-weight:bold}
+.green{color:green}.red{color:red}.grey{color:grey}
+button{padding:8px 12px;margin-right:6px}
+</style>
+</head>
+<body>
+<h1>Bangor Water Level</h1>
+<div class="card">
+<div id="level" class="big">--</div>
+<div id="trend"></div>
+<div id="updated"></div>
+</div>
+
+<div class="card">
+<label>Datum Offset:</label>
+<input id="offset" type="number" step="0.001" value="0">
+</div>
+
+<div class="card">
+<button onclick="setRange('24h')">24 Hours</button>
+<button onclick="setRange('7d')">7 Days</button>
+<button onclick="setRange('3m')">3 Months</button>
+<canvas id="chart"></canvas>
+</div>
+
+<script>
+let allData=[]; let chart; let range='24h';
+
+const saved=localStorage.getItem('datumOffset');
+if(saved) document.getElementById('offset').value=saved;
+document.getElementById('offset').addEventListener('input',()=>{
+ localStorage.setItem('datumOffset',document.getElementById('offset').value);
+ render();
+});
+
+async function load(){
+ const data=await fetch('./data/latest.json?_='+Date.now()).then(r=>r.json());
+ allData=data.rows;
+ render();
+ setInterval(load,900000);
+}
+
+function setRange(r){range=r;render();}
+
+function render(){
+ const off=parseFloat(document.getElementById('offset').value||0);
+ let rows=[...allData];
+ const now=new Date(rows[rows.length-1].timestamp);
+ if(range==='24h') rows=rows.filter(r=>now-new Date(r.timestamp)<=86400000);
+ if(range==='7d') rows=rows.filter(r=>now-new Date(r.timestamp)<=604800000);
+
+ const latest=rows[rows.length-1];
+ const prev=rows[rows.length-2];
+ const level=(latest.absolute+off).toFixed(3);
+
+ let arrow='► Stable', cls='grey';
+ if(latest.absolute>prev.absolute){arrow='▲ Rising';cls='green';}
+ if(latest.absolute<prev.absolute){arrow='▼ Falling';cls='red';}
+
+ document.getElementById('level').textContent=level+' m';
+ document.getElementById('trend').innerHTML='<span class="'+cls+'">'+arrow+'</span>';
+ document.getElementById('updated').textContent='Updated: '+latest.timestamp;
+
+ const labels=rows.map(r=>r.timestamp);
+ const values=rows.map(r=>r.absolute+off);
+
+ if(chart) chart.destroy();
+ chart=new Chart(document.getElementById('chart'),{
+  type:'line',
+  data:{labels,datasets:[{label:'Level',data:values}]},
+  options:{responsive:true,scales:{x:{display:false}}}
+ });
+}
+load();
+</script>
+</body></html>
