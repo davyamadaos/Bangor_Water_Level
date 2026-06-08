@@ -1,16 +1,42 @@
-import io, json, zipfile, requests, pandas as pd
+import io
+import json
 import os
+import zipfile
+import requests
+import pandas as pd
+from io import StringIO
 
 os.makedirs("data", exist_ok=True)
-URL='https://epawebapp.epa.ie/Hydronet/output/internet/stations/CAS/33008/Q/3_months.zip'
-z=zipfile.ZipFile(io.BytesIO(requests.get(URL,timeout=60).content))
-csv=[n for n in z.namelist() if n.endswith('.csv')][0]
-lines=z.read(csv).decode('utf-8').splitlines()
-rows=[l for l in lines if not l.startswith('#') and l.strip()]
-from io import StringIO
-df=pd.read_csv(StringIO('\n'.join(rows)),sep=';',header=None,
- names=['timestamp','value','absolute','quality'])
-out={'rows':[{'timestamp':str(r.timestamp),'absolute':float(r.absolute)}
- for _,r in df.iterrows()]}
-open('data/latest.json','w').write(json.dumps(out))
-print('updated')
+
+URL = "https://epawebapp.epa.ie/Hydronet/output/internet/stations/CAS/33008/Q/3_months.zip"
+
+response = requests.get(URL, timeout=60)
+response.raise_for_status()
+
+z = zipfile.ZipFile(io.BytesIO(response.content))
+csv_file = [n for n in z.namelist() if n.endswith(".csv")][0]
+
+lines = z.read(csv_file).decode("utf-8").splitlines()
+rows = [l for l in lines if not l.startswith("#") and l.strip()]
+
+df = pd.read_csv(
+    StringIO("\n".join(rows)),
+    sep=";",
+    header=None,
+    names=["timestamp", "value", "absolute", "quality"]
+)
+
+out = {
+    "rows": [
+        {
+            "timestamp": str(r.timestamp),
+            "absolute": float(r.absolute)
+        }
+        for _, r in df.iterrows()
+    ]
+}
+
+with open("data/latest.json", "w") as f:
+    json.dump(out, f)
+
+print("Updated", len(df), "rows")
