@@ -8,7 +8,7 @@ from io import StringIO
 
 os.makedirs("data", exist_ok=True)
 
-URL = "https://epawebapp.epa.ie/Hydronet/output/internet/stations/CAS/33008/Q/3_months.zip"
+URL = "https://epawebapp.epa.ie/Hydronet/output/internet/stations/CAS/33008/S/3_months.zip"
 
 response = requests.get(URL, timeout=60)
 response.raise_for_status()
