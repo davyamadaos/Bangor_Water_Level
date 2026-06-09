@@ -18,9 +18,9 @@ csv_file = [n for n in z.namelist() if n.endswith(".csv")][0]
 
 lines = z.read(csv_file).decode("utf-8").splitlines()
 rows = [l for l in lines if not l.startswith("#") and l.strip()]
-print("FIRST 10 ROWS:")
-for r in rows[:10]:
-    print(r)
+print("FIRST 10 LINES OF FILE")
+for line in lines[:10]:
+    print(line)
 
 df = pd.read_csv(
     StringIO("\n".join(rows)),
