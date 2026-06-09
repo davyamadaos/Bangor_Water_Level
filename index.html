@@ -165,7 +165,12 @@ async function loadData(){
 
     try {
 
-        const response = await fetch('./data/latest.json?_=' + Date.now());
+        const response = await fetch(
+  './data/latest.json?v=' + Date.now(),
+  {
+    cache: 'no-store'
+  }
+);
 
         const data = await response.json();
 
