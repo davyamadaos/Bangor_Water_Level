@@ -24,8 +24,10 @@ df = pd.read_csv(
     sep=";",
     header=None,
     names=["timestamp", "value", "absolute", "quality"]
+)
 
-
+df["absolute"] = pd.to_numeric(df["absolute"], errors="coerce")
+df = df.dropna(subset=["absolute"])
 out = {
     "rows": [
         {
