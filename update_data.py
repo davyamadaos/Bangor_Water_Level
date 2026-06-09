@@ -18,7 +18,8 @@ csv_file = [n for n in z.namelist() if n.endswith(".csv")][0]
 
 lines = z.read(csv_file).decode("utf-8").splitlines()
 rows = [l for l in lines if not l.startswith("#") and l.strip()]
-
+print("FIRST ROW:")
+print(rows[0])
 df = pd.read_csv(
     StringIO("\n".join(rows)),
     sep=";",
