@@ -24,13 +24,13 @@ df = pd.read_csv(
     sep=";",
     header=None,
     names=["timestamp", "value", "absolute", "quality"]
-)
+
 
 out = {
     "rows": [
         {
-            "timestamp": str(r.timestamp),
-            "absolute": float(r.absolute)
+            "timestamp": str(r["timestamp"]),
+            "absolute": float(r["absolute"])
         }
         for _, r in df.iterrows()
     ]
